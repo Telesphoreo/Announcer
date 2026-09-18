@@ -1,0 +1,11 @@
+name: Announcer
+version: '${version}'
+author: Telesphoreo
+main: me.telesphoreo.announcer.Announcer
+api-version: '26.2'
+load: POSTWORLD
+folia-supported: true
+permissions:
+  announcer.reload:
+    description: Reload the Announcer configuration.
+    default: op
