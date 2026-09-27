@@ -4,12 +4,17 @@ import com.mojang.brigadier.Command;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
 
 public final class Announcer extends JavaPlugin
 {
@@ -19,16 +24,33 @@ public final class Announcer extends JavaPlugin
     @Override
     public void onEnable()
     {
-        saveDefaultConfig();
+        Path yamlPath = getDataFolder().toPath().resolve("config.yml");
+        if (!Files.exists(configPath()) && Files.exists(yamlPath))
+        {
+            try
+            {
+                convertYamlConfig(yamlPath);
+            }
+            catch (IOException | InvalidConfigurationException | IllegalArgumentException exception)
+            {
+                getLogger().severe("Could not convert config.yml to config.toml: " + exception.getMessage());
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            }
+        }
+        if (!Files.exists(configPath()))
+        {
+            saveResource("config.toml", false);
+        }
 
         final AnnouncementSettings settings;
         try
         {
             settings = loadSettings();
         }
-        catch (IOException | InvalidConfigurationException | IllegalArgumentException exception)
+        catch (IOException | IllegalArgumentException exception)
         {
-            getLogger().severe("Invalid config.yml: " + exception.getMessage());
+            getLogger().severe("Invalid config.toml: " + exception.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -47,10 +69,32 @@ public final class Announcer extends JavaPlugin
         startAnnouncements(settings);
     }
 
-    private AnnouncementSettings loadSettings() throws IOException, InvalidConfigurationException
+    private Path configPath()
     {
-        YamlConfiguration config = new YamlConfiguration();
-        config.load(new File(getDataFolder(), "config.yml"));
+        return getDataFolder().toPath().resolve("config.toml");
+    }
+
+    private void convertYamlConfig(Path yamlPath) throws IOException, InvalidConfigurationException
+    {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.load(yamlPath.toFile());
+        final String template;
+        try (InputStream stream = getResource("config.toml"))
+        {
+            template = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        }
+        Files.writeString(configPath(), ConfigConverter.toToml(yaml, template));
+        Files.move(yamlPath, yamlPath.resolveSibling("config.yml.old"));
+        getLogger().info("Converted config.yml to config.toml. The old file is config.yml.old.");
+    }
+
+    private AnnouncementSettings loadSettings() throws IOException
+    {
+        TomlParseResult config = Toml.parse(configPath());
+        if (config.hasErrors())
+        {
+            throw new IllegalArgumentException(config.errors().getFirst().toString());
+        }
         return AnnouncementSettings.from(config);
     }
 
@@ -61,10 +105,10 @@ public final class Announcer extends JavaPlugin
         {
             settings = loadSettings();
         }
-        catch (IOException | InvalidConfigurationException | IllegalArgumentException exception)
+        catch (IOException | IllegalArgumentException exception)
         {
-            getLogger().warning("Could not reload config.yml: " + exception.getMessage());
-            sender.sendRichMessage("<red>Could not reload config.yml. Check the console. Current announcements are unchanged.</red>");
+            getLogger().warning("Could not reload config.toml: " + exception.getMessage());
+            sender.sendRichMessage("<red>Could not reload config.toml. Check the console. Current announcements are unchanged.</red>");
             return;
         }
 

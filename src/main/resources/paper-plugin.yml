@@ -2,6 +2,7 @@ name: Announcer
 version: '${version}'
 author: Telesphoreo
 main: me.telesphoreo.announcer.Announcer
+loader: me.telesphoreo.announcer.AnnouncerLoader
 api-version: '26.2'
 load: POSTWORLD
 folia-supported: true

@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.configuration.ConfigurationSection;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlTable;
 
 record AnnouncementSettings(long intervalTicks, List<Component> messages)
 {
-    static AnnouncementSettings from(ConfigurationSection config)
+    static AnnouncementSettings from(TomlTable config)
     {
-        if (!config.isInt("interval-seconds") && !config.isLong("interval-seconds"))
+        if (!config.isLong("interval-seconds"))
         {
             throw new IllegalArgumentException("Set interval-seconds to a positive whole number.");
         }
@@ -24,14 +25,14 @@ record AnnouncementSettings(long intervalTicks, List<Component> messages)
         {
             throw new IllegalArgumentException("Set prefix to a MiniMessage string or an empty string.");
         }
-        List<?> configuredMessages = config.getList("messages");
-        if (configuredMessages == null)
+        if (!config.isArray("messages"))
         {
             throw new IllegalArgumentException("Set messages to a list of MiniMessage strings, or [] to disable announcements.");
         }
+        TomlArray configuredMessages = config.getArrayOrEmpty("messages");
 
         MiniMessage miniMessage = MiniMessage.miniMessage();
-        Component prefix = miniMessage.deserialize(config.getString("prefix", ""));
+        Component prefix = miniMessage.deserialize(config.getString("prefix", () -> ""));
         List<Component> messages = new ArrayList<>();
         for (int index = 0; index < configuredMessages.size(); index++)
         {
