@@ -14,7 +14,7 @@ public final class AnnouncerLoader implements PluginLoader
     public void classloader(PluginClasspathBuilder classpathBuilder)
     {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
-        resolver.addRepository(new RemoteRepository.Builder("central", "default", MavenLibraryResolver.MAVEN_CENTRAL_DEFAULT_MIRROR).build());
+        resolver.addRepository(new RemoteRepository.Builder("papermc", "default", "https://repo.papermc.io/repository/maven-public/").build());
         resolver.addDependency(new Dependency(new DefaultArtifact("org.tomlj:tomlj:2.1.1"), null));
         classpathBuilder.addLibrary(resolver);
     }
