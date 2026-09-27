@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2.build.+")
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("org.tomlj:tomlj:2.1.1")
 }
 
@@ -18,8 +18,12 @@ java {
 }
 
 tasks {
+    compileJava {
+        options.release = 21
+    }
+
     runServer {
-        minecraftVersion("26.2")
+        minecraftVersion("26.3")
         jvmArgs("-Xms2G", "-Xmx2G")
     }
 

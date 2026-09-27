@@ -1,11 +1,12 @@
 # Announcer
 
-Send repeating chat announcements on Paper or Folia 26.2. Use Java 25.
+Send repeating chat announcements on Paper or Folia 1.20.6 and newer. The server needs Java 21 or newer.
+Use Java 25 to build.
 
 ## Install
 
 1. Run `./gradlew build` (`.\gradlew.bat build` on Windows).
-2. Copy `build/libs/Announcer-1.0.jar` into your server's `plugins` directory.
+2. Copy the `Announcer-<version>.jar` file from `build/libs` into your server's `plugins` directory.
 3. Start the server to create `plugins/Announcer/config.toml`.
 4. Edit the configuration.
 5. Run `/announcer reload` to apply changes.
@@ -35,7 +36,7 @@ Server lag or pauses can delay announcements.
 
 Announcer uses the global region scheduler on Paper and Folia.
 It parses messages at startup and on reload, and cancels its task on shutdown.
-It has no plugin dependencies. On first start, Paper downloads the tomlj library from Maven Central.
+It has no plugin dependencies. On first start, Paper downloads the tomlj library from the PaperMC Maven repository.
 
 ## Reload
 
