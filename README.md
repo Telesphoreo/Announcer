@@ -30,13 +30,30 @@ Format the prefix and each message separately with MiniMessage.
 Do not use legacy `&` or section-sign color codes. Announcer does not convert them.
 
 Announcer sends one message per interval in list order, then repeats the list.
-It waits one interval before the first message. Set `messages = []` to disable announcements.
+It waits one interval before the first message. Set `messages = []` to disable scheduled announcements.
+You can still use `/announce` when the list is empty.
 Use a positive whole number for `interval-seconds`. Timing uses 20 server ticks per second.
 Server lag or pauses can delay announcements.
 
 Announcer uses the global region scheduler on Paper and Folia.
 It parses messages at startup and on reload, and cancels its task on shutdown.
 It has no plugin dependencies. On first start, Paper downloads the tomlj library from the PaperMC Maven repository.
+
+## Manual announcements
+
+Run `/announce <message>` in game or `announce <message>` in the server console.
+You need `announcer.announce`. Operators have this permission by default.
+Announcer adds the current configured prefix and parses the message with MiniMessage.
+Do not put quotes around the whole message when you enter the command.
+
+```text
+/announce <red>NOTICE: We will be wiping the worlds on October 18, 2026. Please read https://totalfreedom.tf/threads/upcoming-world-reset-on-october-18-2026.554/ for more details.
+```
+
+Paste `http://` or `https://` links in manual or scheduled announcements to make them clickable.
+Announcer keeps the text and colors. It excludes trailing sentence punctuation from the link target.
+Use explicit MiniMessage click and hover tags if you want custom link text or a tooltip.
+Announcer preserves those tags.
 
 ## Reload
 

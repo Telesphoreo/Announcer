@@ -1,6 +1,7 @@
 package me.telesphoreo.announcer;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -20,6 +21,7 @@ public final class Announcer extends JavaPlugin
 {
     private ScheduledTask announcementTask;
     private int nextMessage;
+    private AnnouncementSettings currentSettings;
 
     @Override
     public void onEnable()
@@ -56,7 +58,33 @@ public final class Announcer extends JavaPlugin
         }
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
-                event.registrar().register(Commands.literal("announcer")
+        {
+            event.registrar().register(Commands.literal("announce")
+                    .requires(source -> source.getSender().hasPermission("announcer.announce"))
+                    .executes(context ->
+                    {
+                        context.getSource().getSender().sendRichMessage("<red>Use /announce <message>.</red>");
+                        return 0;
+                    })
+                    .then(Commands.argument("message", StringArgumentType.greedyString()).executes(context ->
+                    {
+                        String message = StringArgumentType.getString(context, "message");
+                        CommandSender sender = context.getSource().getSender();
+                        getServer().getGlobalRegionScheduler().run(this, task ->
+                        {
+                            try
+                            {
+                                getServer().broadcast(currentSettings.format(message));
+                            }
+                            catch (IllegalArgumentException exception)
+                            {
+                                sender.sendRichMessage("<red>Could not parse the announcement. Check the MiniMessage tags.</red>");
+                            }
+                        });
+                        return Command.SINGLE_SUCCESS;
+                    }))
+                    .build(), "Broadcast a MiniMessage announcement.");
+            event.registrar().register(Commands.literal("announcer")
                         .requires(source -> source.getSender().hasPermission("announcer.reload"))
                         .then(Commands.literal("reload").executes(context ->
                         {
@@ -64,7 +92,8 @@ public final class Announcer extends JavaPlugin
                             getServer().getGlobalRegionScheduler().run(this, task -> reloadAnnouncements(sender));
                             return Command.SINGLE_SUCCESS;
                         }))
-                        .build(), "Reload the Announcer configuration."));
+                        .build(), "Reload the Announcer configuration.");
+        });
 
         startAnnouncements(settings);
     }
@@ -120,6 +149,7 @@ public final class Announcer extends JavaPlugin
     private void startAnnouncements(AnnouncementSettings settings)
     {
         stopAnnouncements();
+        currentSettings = settings;
         if (settings.messages().isEmpty())
         {
             getLogger().info("No messages configured. Announcements are disabled.");

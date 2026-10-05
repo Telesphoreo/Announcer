@@ -3,12 +3,16 @@ package me.telesphoreo.announcer;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlTable;
 
-record AnnouncementSettings(long intervalTicks, List<Component> messages)
+record AnnouncementSettings(long intervalTicks, Component prefix, List<Component> messages)
 {
+    Component format(String message)
+    {
+        return Component.empty().append(prefix).append(AnnouncementFormatter.parse(message));
+    }
+
     static AnnouncementSettings from(TomlTable config)
     {
         if (!config.isLong("interval-seconds"))
@@ -31,8 +35,7 @@ record AnnouncementSettings(long intervalTicks, List<Component> messages)
         }
         TomlArray configuredMessages = config.getArrayOrEmpty("messages");
 
-        MiniMessage miniMessage = MiniMessage.miniMessage();
-        Component prefix = miniMessage.deserialize(config.getString("prefix", () -> ""));
+        Component prefix = AnnouncementFormatter.parse(config.getString("prefix", () -> ""));
         List<Component> messages = new ArrayList<>();
         for (int index = 0; index < configuredMessages.size(); index++)
         {
@@ -40,8 +43,8 @@ record AnnouncementSettings(long intervalTicks, List<Component> messages)
             {
                 throw new IllegalArgumentException("Set message " + (index + 1) + " to a MiniMessage string.");
             }
-            messages.add(Component.empty().append(prefix).append(miniMessage.deserialize(message)));
+            messages.add(Component.empty().append(prefix).append(AnnouncementFormatter.parse(message)));
         }
-        return new AnnouncementSettings(seconds * 20, List.copyOf(messages));
+        return new AnnouncementSettings(seconds * 20, prefix, List.copyOf(messages));
     }
 }

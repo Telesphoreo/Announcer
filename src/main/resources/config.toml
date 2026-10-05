@@ -1,5 +1,5 @@
 # Set the time between messages in whole seconds.
-# Wait one interval before the first message. Timing uses 20 server ticks per second.
+# Wait one interval before the first message.
 interval-seconds = 300
 
 # Use MiniMessage only. Do not use legacy color codes such as &a or section-sign codes.
@@ -10,7 +10,8 @@ interval-seconds = 300
 prefix = ""
 
 # Add messages in the order you want to send them. Repeat after the last message.
-# Set messages to [] to disable announcements.
+# Paste http:// or https:// links to make them clickable. Existing click tags are preserved.
+# Set messages to [] to disable scheduled announcements. You can still use /announce.
 # Run /announcer reload after you change this file.
 messages = [
     "<green>Welcome to the server!</green>",

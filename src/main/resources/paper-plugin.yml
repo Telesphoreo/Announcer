@@ -7,6 +7,9 @@ api-version: '1.20.6'
 load: POSTWORLD
 folia-supported: true
 permissions:
+  announcer.announce:
+    description: Broadcast a MiniMessage announcement.
+    default: op
   announcer.reload:
     description: Reload the Announcer configuration.
     default: op
